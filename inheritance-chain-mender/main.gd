@@ -15,10 +15,12 @@ func _run() -> void:
 	for class_instance in classes:
 		classes_with_file_path[class_instance['class']] = class_instance['path']
 	
-	print(classes_with_file_path)
+	print(all_gd_files)
 
 	for file in all_gd_files:
+		print(file)
 		comment_out_class_name(file)
+		print("-#-#-#-#-#-")
 
 var all_gd_files: Array = []
 func scan_dir(path):
@@ -40,7 +42,7 @@ func scan_dir(path):
 			if file_name.get_extension() == 'gd':
 				var name = path+"/"+file_name
 				#print(name)
-				if name not in all_gd_files:
+				if name not in all_gd_files and name != "res:///main.gd":
 					all_gd_files.append(name)
 				files.push_back(name)
 		file_name = dir.get_next()
@@ -50,14 +52,21 @@ func scan_dir(path):
 
 func comment_out_class_name(file):
 	var class_name_regex = RegEx.new()
-	class_name_regex.compile("(?m)^class_name +.*")
+	class_name_regex.compile("(?m)^(class_name +.*)")
 	
 	var opened_file = FileAccess.open(file, FileAccess.READ)
 	var content = opened_file.get_as_text()
 	
-	var result = class_name_regex.search(content)
-	if result:
-		print(result.get_string())
+	var after_search = class_name_regex.sub(content, "#$1")
+	print(after_search)
+	
+	opened_file = FileAccess.open(file, FileAccess.WRITE)
+	
+	opened_file.store_string(after_search)
+	
+	#var result = class_name_regex.search(content)
+	#if result:
+		#print(result.get_string())
 
 #---
 func dir_contents(path):
