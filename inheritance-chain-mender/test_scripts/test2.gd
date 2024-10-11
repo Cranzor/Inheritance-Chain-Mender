@@ -1,5 +1,5 @@
-extends Test1
-class_name Test2
+extends 'res://test_scripts/test1.gd'
+#class_name Test2
 
 
 # Called when the node enters the scene tree for the first time.
