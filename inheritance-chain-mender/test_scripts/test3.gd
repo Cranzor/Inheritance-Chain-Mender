@@ -1,7 +1,5 @@
 extends Node
-#class_name Test3
-
-const Test2 = preload('res://test_scripts/test2.gd')
+class_name Test3
 
 var test2 = Test2.new()
 

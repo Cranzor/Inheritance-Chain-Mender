@@ -1,0 +1,37 @@
+[gd_resource type="Resource" load_steps=2 format=3 uid="uid://bvoghsyogl7yh"]
+
+[ext_resource type="Script" path="res://addons/inheritance_chain_mender/global_classes.gd" id="1_6ky1k"]
+
+[resource]
+script = ExtResource("1_6ky1k")
+saved_global_classes_array = Array[Dictionary]([{
+"base": &"Node",
+"class": &"Test1",
+"icon": "",
+"language": &"GDScript",
+"path": "res://test_scripts/test1.gd"
+}, {
+"base": &"Test1",
+"class": &"Test2",
+"icon": "",
+"language": &"GDScript",
+"path": "res://test_scripts/test2.gd"
+}, {
+"base": &"Node",
+"class": &"Test3",
+"icon": "",
+"language": &"GDScript",
+"path": "res://test_scripts/test3.gd"
+}, {
+"base": &"Node",
+"class": &"Test4",
+"icon": "",
+"language": &"GDScript",
+"path": "res://test_scripts/test4.gd"
+}, {
+"base": &"Node",
+"class": &"Test5",
+"icon": "",
+"language": &"GDScript",
+"path": "res://test_scripts/test5.gd"
+}])
