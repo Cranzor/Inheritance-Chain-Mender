@@ -19,13 +19,19 @@ var saves
 func _get_name() -> String:
 	return "Inheritance Chain Mender"
 
+
 func _export_begin(features, is_debug, path, flags) -> void:
+	convert_scripts()
+
+
+func convert_scripts() -> void:
 	saves = preload("res://addons/inheritance_chain_mender/global_classes.gd")
 	saves = saves.new()
 	print(saves.original_scripts)
 	
 	all_gd_files = []
-	var saved_global_classes = preload("res://addons/inheritance_chain_mender/saved_global_classes.tres")
+	saves.gd_files = all_gd_files
+	#var saved_global_classes = preload("res://addons/inheritance_chain_mender/saved_global_classes.tres")
 	
 	print("Export started")
 	
@@ -47,46 +53,20 @@ func _export_begin(features, is_debug, path, flags) -> void:
 		#print(new_text)
 		print("---------------------------------")
 	
-	ResourceSaver.save(saved_global_classes, save_file_path + save_file_name)
-	
-func _export_end() -> void:
-	#overwrite save
-	for file in all_gd_files:
-		restore_original_file(file)
-	
-	saves.saved_global_classes_array.clear()
-	saves.original_scripts.clear()
+	ResourceSaver.save(saves, save_file_path + save_file_name)
+
+
+func revert_scripts_to_originals() -> void:
+	var saves = preload("res://addons/inheritance_chain_mender/saved_global_classes.tres")
+	for file in saves.gd_files:
+		var original_content = saves.original_scripts[file]
+		restore_original_file(file, original_content)
 	
 	print("---\ndone")
-	
-func _run():
-	#const SavedGlobalClasses = preload("res://addons/inheritance_chain_mender/global_classes.gd")
-	#var saved_global_classes: SavedGlobalClasses = SavedGlobalClasses.new()
-	var saved_global_classes = preload("res://addons/inheritance_chain_mender/saved_global_classes.tres")
-	
-	global_classes = ProjectSettings.get_global_class_list()
-	
-	#saved_global_classes.update_global_classes(global_classes)
-	#ResourceSaver.save(saved_global_classes, save_file_path + save_file_name)
-	#print(global_classes)
-	print(saved_global_classes.saved_global_classes_array)
-	print('here')
 
-	# putting paths for all project files with the .gd file type into all_gd_files with a recursive search
-	scan_dir_for_gd_files("res://")
-	
-	# generating dict that holds global class names as keys and associated file paths as values
-	for global_class in global_classes:
-		classes_with_file_path[global_class['class']] = global_class['path']
 
-	for file in all_gd_files:
-		var new_text = get_new_file_text(file)
-		#write_new_text_to_file(file, new_text)
-		file_counter += 1
-		print(new_text)
-		print("---------------------------------")
-	
-	post_conversion_print(file_counter)
+func _export_end() -> void:
+	revert_scripts_to_originals()
 
 
 func scan_dir_for_gd_files(path):
@@ -180,7 +160,7 @@ func add_const_class_above_const_new(file_content):
 		var search = regex.search(file_content)
 		if search != null:
 			updated_file_content = regex.sub(updated_file_content, matched_spacing + "const " +\
-			global_class + "= preload('" + class_file_path + "')" + original_line_body_with_spacing)
+			global_class + " = preload('" + class_file_path + "')" + original_line_body_with_spacing)
 	return updated_file_content
 
 
@@ -193,12 +173,13 @@ func post_conversion_print(number):
 	print(str(number) + " files converted.")
 	print("Reload your project to see changes take effect.")
 
+
 func make_file_backup(file):
 	var opened_file = FileAccess.open(file, FileAccess.READ)
 	var original_content = opened_file.get_as_text()
 	saves.original_scripts[file] = original_content
 
-func restore_original_file(file):
+
+func restore_original_file(file, original_content):
 	var opened_file = FileAccess.open(file, FileAccess.WRITE)
-	var original_content = saves.original_scripts[file]
 	opened_file.store_string(original_content)
