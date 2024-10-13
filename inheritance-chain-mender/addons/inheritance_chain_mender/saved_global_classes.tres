@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_6ky1k")
-saved_global_classes_array = Array[Dictionary]([{
+saved_global_classes_array = [{
 "base": &"Node",
 "class": &"Test1",
 "icon": "",
@@ -34,4 +34,5 @@ saved_global_classes_array = Array[Dictionary]([{
 "icon": "",
 "language": &"GDScript",
 "path": "res://test_scripts/test5.gd"
-}])
+}]
+original_scripts = null

@@ -1,5 +1,5 @@
 @tool
-extends EditorPlugin
+extends EditorExportPlugin
 
 var global_classes
 var classes_array
@@ -12,26 +12,53 @@ var conversion_tag = "# Converted by Inheritance Chain Mender\n"
 var save_file_path = "res://addons/inheritance_chain_mender/"
 var save_file_name = "saved_global_classes.tres"
 
-@onready var saved_global_classes = ResourceLoader.load("res://addons/inheritance_chain_mender/saved_global_classes.tres", "", 0)
+var file_backups: Dictionary = {}
 
-func _enter_tree() -> void:
-	var saved_global_classes = preload("res://addons/inheritance_chain_mender/saved_global_classes.tres")
-	#const SavedGlobalClasses = preload("res://addons/inheritance_chain_mender/global_classes.gd")
-	#var saved_global_classes = preload("res://addons/inheritance_chain_mender/global_classes.gd")
-	#saved_global_classes = ResourceLoader.load("res://addons/inheritance_chain_mender/saved_global_classes.tres")
-	#saved_global_classes.take_over_path("res://addons/inheritance_chain_mender/saved_global_classes.tres")
-	#print(saved_global_classes.saved_global_classes_array)
+var saves
 
-	#print(global_classes)
-	#ResourceSaver.save(saved_global_classes, save_file_path + save_file_name)
-	print('done')
-	new_thing(saved_global_classes)
+func _get_name() -> String:
+	return "Inheritance Chain Mender"
+
+func _export_begin(features, is_debug, path, flags) -> void:
+	saves = preload("res://addons/inheritance_chain_mender/global_classes.gd")
+	saves = saves.new()
+	print(saves.original_scripts)
 	
-func new_thing(classes):
-	var array = classes.saved_global_classes_array
-	for entry in array:
-		print(entry)
-
+	all_gd_files = []
+	var saved_global_classes = preload("res://addons/inheritance_chain_mender/saved_global_classes.tres")
+	
+	print("Export started")
+	
+	global_classes = ProjectSettings.get_global_class_list()
+	
+	# putting paths for all project files with the .gd file type into all_gd_files with a recursive search
+	scan_dir_for_gd_files("res://")
+	print(all_gd_files)
+	
+	# generating dict that holds global class names as keys and associated file paths as values
+	for global_class in global_classes:
+		classes_with_file_path[global_class['class']] = global_class['path']
+	
+	for file in all_gd_files:
+		make_file_backup(file)
+		var new_text = get_new_file_text(file)
+		write_new_text_to_file(file, new_text)
+		file_counter += 1
+		#print(new_text)
+		print("---------------------------------")
+	
+	ResourceSaver.save(saved_global_classes, save_file_path + save_file_name)
+	
+func _export_end() -> void:
+	#overwrite save
+	for file in all_gd_files:
+		restore_original_file(file)
+	
+	saves.saved_global_classes_array.clear()
+	saves.original_scripts.clear()
+	
+	print("---\ndone")
+	
 func _run():
 	#const SavedGlobalClasses = preload("res://addons/inheritance_chain_mender/global_classes.gd")
 	#var saved_global_classes: SavedGlobalClasses = SavedGlobalClasses.new()
@@ -78,7 +105,9 @@ func scan_dir_for_gd_files(path):
 		else:
 			if file_name.get_extension() == 'gd':
 				var name = path+"/"+file_name
-				if name not in all_gd_files and name != "res://addons/inheritance_chain_mender/inheritance_chain_mender.gd":
+				if name not in all_gd_files and path != "res:///addons/inheritance_chain_mender":
+					print("path: " + path)
+					print("name: " + name)
 					all_gd_files.append(name)
 				files.push_back(name)
 		file_name = dir.get_next()
@@ -159,6 +188,17 @@ func write_new_text_to_file(file, new_text):
 	var opened_file = FileAccess.open(file, FileAccess.WRITE)
 	opened_file.store_string(new_text)
 
+
 func post_conversion_print(number):
 	print(str(number) + " files converted.")
 	print("Reload your project to see changes take effect.")
+
+func make_file_backup(file):
+	var opened_file = FileAccess.open(file, FileAccess.READ)
+	var original_content = opened_file.get_as_text()
+	saves.original_scripts[file] = original_content
+
+func restore_original_file(file):
+	var opened_file = FileAccess.open(file, FileAccess.WRITE)
+	var original_content = saves.original_scripts[file]
+	opened_file.store_string(original_content)
