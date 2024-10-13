@@ -180,7 +180,7 @@ func add_const_class_above_const_new(file_content):
 		var search = regex.search(file_content)
 		if search != null:
 			updated_file_content = regex.sub(updated_file_content, matched_spacing + "const " +\
-			 global_class + ": " + global_class + " = preload('" + class_file_path + "')" + original_line_body_with_spacing)
+			global_class + "= preload('" + class_file_path + "')" + original_line_body_with_spacing)
 	return updated_file_content
 
 
