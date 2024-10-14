@@ -20,7 +20,7 @@ If you appear to regularly have no issues doing this, you can switch your workfl
 2. Export your project. If you are prompted with a message to update your scripts, click "Cancel" and reload your project.
 3. **Highly recommended:** Use [Godot RE Tools](https://github.com/bruvzg/gdsdecomp) on the exported project to make sure there are no errors in any scripts. This is the same environment modders will interact with.
 
-## The Conversion Process
+## Conversion Process
 Each .gd file in the project goes through the following process:
 - class_name is commented out
 - Extensions of a global class are replaced with the file path for the class
