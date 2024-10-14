@@ -11,13 +11,13 @@ If you appear to regularly have no issues doing this, you can switch your workfl
 ### In-Editor Conversion (Recommended Usage)
 
 1. Add the plugin to your addons folder and back up your project. The plugin does not need to be enabled.
-2. In the editor_scripts folder, run the file named "convert_files_in_editor". Reload your project once the completion message appears in the output.
+2. In the editor_scripts folder, run the file named "convert_files_in_editor". Reload your project once the completion message appears in the output. If you are prompted with a message to update your scripts, click "Cancel."
 3. Your scripts are now converted. Check to see if any errors (edge cases) have appeared. Manually correct any that remain, and then export your project.
 4. Once exported, run the "revert_files_in_editor" script in the editor_scripts folder. This will restore your original scripts. Reload your project once the completion message appears in the output.
 
 ### Export Conversion (Experimental Usage)
 1. Add the plugin to your addons folder and back up your project. Make sure to enable the plugin.
-2. Export your project. If you are prompted with a message to update your scripts, simply click "Cancel" and reload your project.
+2. Export your project. If you are prompted with a message to update your scripts, click "Cancel" and reload your project.
 3. **Highly recommended:** Use [Godot RE Tools](https://github.com/bruvzg/gdsdecomp) on the exported project to make sure there are no errors in any scripts. This is the same environment modders will interact with.
 
 ## The Conversion Process
