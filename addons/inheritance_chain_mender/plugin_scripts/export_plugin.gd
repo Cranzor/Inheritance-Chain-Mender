@@ -4,7 +4,7 @@
 extends EditorExportPlugin
 
 const InheritanceChainMender = preload("res://addons/inheritance_chain_mender/inheritance_chain_mender.gd")
-var inheritance_chain_mender =  InheritanceChainMender.new()
+var inheritance_chain_mender: InheritanceChainMender =  InheritanceChainMender.new()
 
 func _get_name() -> String:
 	return "Inheritance Chain Mender"
