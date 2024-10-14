@@ -1,3 +1,5 @@
+# Runs at time of export
+
 @tool
 extends EditorExportPlugin
 

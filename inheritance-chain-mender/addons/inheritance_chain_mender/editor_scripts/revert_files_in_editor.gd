@@ -1,3 +1,6 @@
+# This script is for manually reverting your files back to their original content.
+# Use File -> Run for it to start, and then Project -> Reload Current project to see changes take effect.
+
 @tool
 extends EditorScript
 

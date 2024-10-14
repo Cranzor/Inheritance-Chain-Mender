@@ -1,3 +1,7 @@
+# This script is for manually converting your files within the editor.
+# Use File -> Run for it to start, and then Project -> Reload Current project to see changes take effect.
+# Check for errors and then export the project when none remain.
+
 @tool
 extends EditorScript
 

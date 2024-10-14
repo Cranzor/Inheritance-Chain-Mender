@@ -1,3 +1,5 @@
+# Runs when the plugin is enabled
+
 @tool
 extends EditorPlugin
 

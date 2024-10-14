@@ -1,8 +1,0 @@
-[gd_resource type="Resource" load_steps=2 format=3 uid="uid://cqcsokufoceyk"]
-
-[ext_resource type="Script" path="res://addons/inheritance_chain_mender/data_backup/data_backup.gd" id="1_0ngej"]
-
-[resource]
-script = ExtResource("1_0ngej")
-backup_scripts = {}
-gd_files = []
