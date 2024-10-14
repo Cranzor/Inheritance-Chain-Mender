@@ -6,3 +6,6 @@ func _run() -> void:
 	var inheritance_chain_mender = InheritanceChainMender.new()
 	
 	inheritance_chain_mender.convert_scripts()
+	
+	if inheritance_chain_mender.conversion_completed:
+		print_rich("[color=YELLOW_GREEN]Finished converting files. Restart the editor to see changes take effect.")

@@ -1,72 +1,57 @@
 @tool
-extends EditorExportPlugin
 
-var global_classes
-var classes_array
-var overwrite_files = false
-@export var classes_with_file_path: Dictionary = {}
+var classes_with_file_path: Dictionary = {}
 var all_gd_files: Array = []
-var file_counter = 0
 var conversion_tag = "# Converted by Inheritance Chain Mender\n"
 
 var save_file_path = "res://addons/inheritance_chain_mender/"
 var save_file_name = "saved_global_classes.tres"
 
-var file_backups: Dictionary = {}
-
 var saves
 
-func _get_name() -> String:
-	return "Inheritance Chain Mender"
-
-
-func _export_begin(features, is_debug, path, flags) -> void:
-	convert_scripts()
-
+var conversion_completed: bool = false
+var reversion_completed: bool = false
 
 func convert_scripts() -> void:
-	saves = preload("res://addons/inheritance_chain_mender/global_classes.gd")
-	saves = saves.new()
-	print(saves.original_scripts)
-	
-	all_gd_files = []
-	saves.gd_files = all_gd_files
-	#var saved_global_classes = preload("res://addons/inheritance_chain_mender/saved_global_classes.tres")
-	
-	print("Export started")
-	
-	global_classes = ProjectSettings.get_global_class_list()
-	
 	# putting paths for all project files with the .gd file type into all_gd_files with a recursive search
 	scan_dir_for_gd_files("res://")
-	print(all_gd_files)
-	
-	# generating dict that holds global class names as keys and associated file paths as values
-	for global_class in global_classes:
-		classes_with_file_path[global_class['class']] = global_class['path']
-	
-	for file in all_gd_files:
-		make_file_backup(file)
-		var new_text = get_new_file_text(file)
-		write_new_text_to_file(file, new_text)
-		file_counter += 1
-		#print(new_text)
-		print("---------------------------------")
-	
-	ResourceSaver.save(saves, save_file_path + save_file_name)
+	if check_if_converted(get_file_content(all_gd_files[0])):
+		print_rich("[color=YELLOW]Files have already been converted.")
+		conversion_completed = false
+	else:
+		saves = ResourceLoader.load("res://addons/inheritance_chain_mender/data_backup/data_backup.gd", "", 0)
+		saves = saves.new()
+		
+		saves.gd_files = all_gd_files
+		
+		var global_classes = ProjectSettings.get_global_class_list()
+		
+		# generating dict that holds global class names as keys and associated file paths as values
+		for global_class in global_classes:
+			classes_with_file_path[global_class['class']] = global_class['path']
+		
+		for file in all_gd_files:
+			make_file_backup(file)
+			var new_text = get_new_file_text(file)
+			write_new_text_to_file(file, new_text)
+
+		ResourceSaver.save(saves, save_file_path + save_file_name)
+		
+		conversion_completed = true
 
 
 func revert_scripts_to_originals() -> void:
-	var saves = preload("res://addons/inheritance_chain_mender/saved_global_classes.tres")
-	for file in saves.gd_files:
-		var original_content = saves.original_scripts[file]
-		restore_original_file(file, original_content)
-	
-	print("---\ndone")
-
-
-func _export_end() -> void:
-	revert_scripts_to_originals()
+	if has_saved_data():
+		var saves = ResourceLoader.load("res://addons/inheritance_chain_mender/saved_global_classes.tres", "", 0)
+		for file in saves.gd_files:
+			var original_content = saves.backup_scripts[file]
+			restore_original_file(file, original_content)
+		
+		clear_saves()
+		reversion_completed = true
+	else:
+		print_rich("[color=YELLOW]Files have already been reverted.")
+		reversion_completed = false
 
 
 func scan_dir_for_gd_files(path):
@@ -85,9 +70,7 @@ func scan_dir_for_gd_files(path):
 		else:
 			if file_name.get_extension() == 'gd':
 				var name = path+"/"+file_name
-				if name not in all_gd_files and path != "res:///addons/inheritance_chain_mender":
-					print("path: " + path)
-					print("name: " + name)
+				if name not in all_gd_files and !path.contains("res:///addons/inheritance_chain_mender"):
 					all_gd_files.append(name)
 				files.push_back(name)
 		file_name = dir.get_next()
@@ -98,16 +81,15 @@ func scan_dir_for_gd_files(path):
 
 func get_new_file_text(file):
 	# open .gd file and get its text as a string
-	var opened_file = FileAccess.open(file, FileAccess.READ)
-	var content = opened_file.get_as_text()
+	var content = get_file_content(file)
 	var updated_content = content
 	
-	if check_if_converted(content): # skipping files that have been tagged as already converted
+	if !check_if_converted(content): # skipping files that have been tagged as already converted
 		# file content gets updated with three different RegEx operations
 		updated_content = comment_out_class_names(content) # comments out class_name so that it is no longer used
-		updated_content = add_const_class_above_const_new(updated_content) # for lines containing 'Class.method()', adds a new line above with a constant declaration + proper type
+		updated_content = add_class_const_above_const_new(updated_content) # for lines containing 'Class.method()', adds a new line above with a constant declaration + proper type
 		updated_content = substitute_extensions_with_paths(updated_content) # swaps out class names after 'extends' with the file path for the class
-		#updated_content = conversion_tag + updated_content
+		updated_content = conversion_tag + updated_content
 	return updated_content
 
 
@@ -116,8 +98,8 @@ func check_if_converted(file_content):
 	regex.compile(conversion_tag)
 	var search = regex.search(file_content)
 	if search == null:
-		return true
-	return false
+		return false
+	return true
 
 
 func comment_out_class_names(file_content):
@@ -147,15 +129,16 @@ func substitute_extensions_with_paths(file_content):
 	return file_content
 
 
-func add_const_class_above_const_new(file_content):
+func add_class_const_above_const_new(file_content):
 	var updated_file_content: String = file_content
 	for global_class in classes_with_file_path.keys():
 		var regex = RegEx.new()
-		regex.compile("(\\s*)(.*"+ global_class + "\\.)")
+		#regex.compile("(?m)^(\\s+)(.*"+ global_class + "\\.)")
+		regex.compile("(?m)(\\s+)^(\\h*)(.*"+ global_class + "\\.)")
 		
 		var class_file_path = classes_with_file_path[global_class]
-		var matched_spacing = "$1"
-		var original_line_body_with_spacing = "$1$2"
+		var matched_spacing = "$1$2"
+		var original_line_body_with_spacing = "\n$2$3"
 		
 		var search = regex.search(file_content)
 		if search != null:
@@ -169,17 +152,33 @@ func write_new_text_to_file(file, new_text):
 	opened_file.store_string(new_text)
 
 
-func post_conversion_print(number):
-	print(str(number) + " files converted.")
-	print("Reload your project to see changes take effect.")
-
-
 func make_file_backup(file):
-	var opened_file = FileAccess.open(file, FileAccess.READ)
-	var original_content = opened_file.get_as_text()
-	saves.original_scripts[file] = original_content
+	var original_content = get_file_content(file)
+	saves.backup_scripts[file] = original_content
 
 
 func restore_original_file(file, original_content):
 	var opened_file = FileAccess.open(file, FileAccess.WRITE)
 	opened_file.store_string(original_content)
+
+
+func has_saved_data():
+	var saved_data = ResourceLoader.load("res://addons/inheritance_chain_mender/saved_global_classes.tres", "", 0)
+	if saved_data.gd_files.is_empty():
+		return false
+	return true
+
+
+func clear_saves():
+	var loaded_saved_data = ResourceLoader.load("res://addons/inheritance_chain_mender/data_backup/data_backup.gd", "", 0)
+	var saved_data = loaded_saved_data.new()
+	
+	saved_data.gd_files.clear()
+	saved_data.backup_scripts.clear()
+
+	ResourceSaver.save(saved_data, save_file_path + save_file_name)
+
+func get_file_content(file):
+	var opened_file = FileAccess.open(file, FileAccess.READ)
+	var content = opened_file.get_as_text()
+	return content
