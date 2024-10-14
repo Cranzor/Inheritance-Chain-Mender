@@ -1,0 +1,8 @@
+[gd_resource type="Resource" load_steps=2 format=3 uid="uid://c6lnppk1ih4ww"]
+
+[ext_resource type="Script" path="res://addons/inheritance_chain_mender/data_backup/data_backup_holder.gd" id="1_wft8x"]
+
+[resource]
+script = ExtResource("1_wft8x")
+backup_scripts = {}
+gd_files = []
