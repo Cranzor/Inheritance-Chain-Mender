@@ -1,6 +1,6 @@
 # Inheritance Chain Mender
 Automatically convert your Godot scripts at export to no longer use class_name, allowing for "inheritance chaining" that is commonly utilized in Godot modding.
-Due to an engine bug in Godot 4.x, scripts containing a named class cannot be extended twice, which in effect breaks the way that modding often functioned in 3.x.
+Due to an [engine bug in Godot 4.x](https://github.com/godotengine/godot/issues/83542), scripts containing a named class cannot be extended twice, which in effect breaks the way that modding often functioned in 3.x.
 This plugin serves as a temporary solution until the bug is fixed, allowing you to utilize class_name within your project and still maintain modding capability.
 
 ## Usage
@@ -18,7 +18,7 @@ If you appear to regularly have no issues doing this, you can switch your workfl
 ### Export Conversion (Experimental Usage)
 1. Add the plugin to your addons folder and back up your project. Make sure to enable the plugin.
 2. Export your project. If you are prompted with a message to update your scripts, click "Cancel" and reload your project.
-3. **Highly recommended:** Use [Godot RE Tools](https://github.com/bruvzg/gdsdecomp) on the exported project to make sure there are no errors in any scripts. This is the same environment modders will interact with.
+3. **Highly recommended:** Recover the exported project with [Godot RE Tools](https://github.com/bruvzg/gdsdecomp) to make sure there are no errors in any scripts. This is the same environment modders will interact with.
 
 ## Conversion Process
 Each .gd file in the project goes through the following process:
@@ -26,3 +26,14 @@ Each .gd file in the project goes through the following process:
 - Extensions of a global class are replaced with the file path for the class
 - New instances of a class are given a constant declaration in the line above so that they function correctly
 - A tag comment is added to the end of the file to mark it as being converted (this will not be visible after export as comments are deleted)
+
+## Known Edge Cases
+1. Scripts extending the inner class of another script (taken from the [issue page](https://github.com/godotengine/godot/issues/83542))
+   - **base.gd** has no `class_name` but `class BaseInner:`
+   - **VanillaThing.gd** `extends "res://base.gd".BaseInner`
+   - **base.gd** and **VanillaThing.gd** are attached to a node in the main scene.
+
+2. Named classes set to a variable with no method
+   - **base.gd** has `class_name Base`
+   - **inheriting_script.gd** `var base_class = Base`, `var new_class = base_class.new()`
+   - Note that this will register as an error after conversion, so it is easy to spot and manually fix.
