@@ -17,7 +17,7 @@ If you appear to regularly have no issues doing this, you can switch your workfl
 
 ### Export Conversion (Experimental Usage)
 1. Add the plugin to your addons folder and back up your project. Make sure to enable the plugin.
-2. Export your project. If you are prompted with a message to update your scripts, click "Cancel" and reload your project.
+2. Export your project. If you are prompted with a message to update your scripts, click "Cancel" and reload your project. Your scripts will appear the same as they were before the export.
 3. **Highly recommended:** Recover the exported project with [Godot RE Tools](https://github.com/bruvzg/gdsdecomp) to make sure there are no errors in any scripts. This is the same environment modders will interact with.
 
 ## Conversion Process
